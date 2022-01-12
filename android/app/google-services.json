@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1027479653751",
+    "project_id": "carcare-8ffff",
+    "storage_bucket": "carcare-8ffff.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1027479653751:android:471fdb0233d151428d2572",
+        "android_client_info": {
+          "package_name": "com.example.car_care"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1027479653751-6b8ng4h08n6bp0js30mj911hcviqerus.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHq4AfcsM3Zj8yX0Dq4a5qYWl-iujIQRQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1027479653751-6b8ng4h08n6bp0js30mj911hcviqerus.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
