@@ -13,6 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:location/location.dart';
 import 'package:location/location.dart' as loca;
 import 'package:car_care/screens/sign_in.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({Key? key}) : super(key: key);
@@ -72,22 +73,22 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    print(count);
     final data = MediaQuery.of(context);
     final width = data.size.width;
     final height = data.size.height;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Services'),
-        backgroundColor: Colors.yellow[800],
-        actions: [
-          StreamBuilder(
-              stream: FirebaseFirestore.instance
-                  .collection('Progress')
-                  .where('status', isEqualTo: 1)
-                  .snapshots(),
-              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                return IconBadge(
+    final orientation = MediaQuery.of(context).orientation;
+    return StreamBuilder(
+        stream: FirebaseFirestore.instance
+            .collection('Progress')
+            .where('status', isEqualTo: 1)
+            .snapshots(),
+        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Services'),
+              backgroundColor: Colors.yellow[800],
+              actions: [
+                IconBadge(
                   icon: const Icon(Icons.notifications_none),
                   itemCount: snapshot.data!.docs.length,
                   badgeColor: Colors.red,
@@ -98,493 +99,187 @@ class _HomePageState extends State<HomePage> {
                         MaterialPageRoute(
                             builder: (context) => ProgressPage()));
                   },
-                );
-              }),
-        ],
-      ),
-      body: Form(
-        key: _formKey,
-        child: Container(
-          alignment: Alignment.center,
-          margin: EdgeInsets.only(
-            top: height / 80,
-          ),
-          padding: EdgeInsets.only(
-              top: height / 90, left: width / 8, right: width / 8),
-          child: Center(
-            child: GridView.count(
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                crossAxisCount: 2,
-                childAspectRatio: .90,
-                children: [
-                  GestureDetector(
-                    onTap: () async {
-                      _getLocation();
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('Battery Repair'),
-                            content: TextFormField(
-                              controller: det,
-                              validator: (val) {
-                                if (val!.isEmpty) {
-                                  return "please enter your email";
-                                }
+                )
+              ],
+            ),
+            floatingActionButton: FloatingActionButton(
+              backgroundColor: Colors.yellow[800],
+              child: const Center(child: Icon(Icons.call_outlined)),
+              onPressed: () {
+                launch('tel://65782');
+              },
+            ),
+            body: Form(
+              key: _formKey,
+              child: Container(
+                alignment: Alignment.center,
+                margin: EdgeInsets.only(
+                  top: height / 80,
+                ),
+                padding: EdgeInsets.only(
+                    top: height / 90, left: width / 8, right: width / 8),
+                child: Center(
+                  child: StreamBuilder(
+                      stream: FirebaseFirestore.instance
+                          .collection('Services')
+                          .snapshots(),
+                      builder:
+                          (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                        return GridView.builder(
+                          itemCount: snapshot.data!.docs.length,
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount:
+                                (orientation == Orientation.portrait) ? 2 : 3,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: .90,
+                          ),
+                          itemBuilder: (BuildContext context, int index) {
+                            return GestureDetector(
+                              onTap: () async {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text(
+                                          "${snapshot.data!.docs[index]['name']}"),
+                                      content: TextFormField(
+                                        controller: det,
+                                        validator: (val) {
+                                          if (val!.isEmpty) {
+                                            return "please enter your email";
+                                          }
+                                        },
+                                        decoration: const InputDecoration(
+                                            hintText:
+                                                "some details about your car"),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                            style: ButtonStyle(
+                                                padding:
+                                                    MaterialStateProperty.all(
+                                                        EdgeInsets.only(
+                                                            top: height / 45,
+                                                            bottom: height / 45,
+                                                            left: width / 10,
+                                                            right: width / 10)),
+                                                backgroundColor:
+                                                    MaterialStateProperty.all(
+                                                        const Color.fromRGBO(
+                                                            19, 26, 44, 1.0))),
+                                            onPressed: () async {
+                                              if (det.text.isEmpty) {
+                                                setState(() {
+                                                  Navigator.of(context).pop();
+                                                  showBar(
+                                                      context,
+                                                      'please enter some details',
+                                                      0);
+                                                });
+                                              } else {
+                                                if (_formKey.currentState!
+                                                    .validate()) {
+                                                  setState(() {
+                                                    showLoadingDialog(context);
+                                                  });
+                                                  auth.User? user = FirebaseAuth
+                                                      .instance.currentUser;
+                                                  String? name =
+                                                      user!.displayName;
+                                                  // double? la = _currentPosition.latitude;
+                                                  //  double? lo = _currentPosition.longitude;
+                                                  double a = 15.633 + index;
+                                                  GeoPoint location =
+                                                      GeoPoint(a, 32.533);
+                                                  var res = await addItem(
+                                                      uid: user.uid,
+                                                      name: name!,
+                                                      type: snapshot.data!
+                                                          .docs[index]['name'],
+                                                      description:
+                                                          det.text.trim(),
+                                                      map_location: location);
+                                                  if (res.ch == 1) {
+                                                    setState(() {
+                                                      det.clear();
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                      showBar(
+                                                          context,
+                                                          "Progress Added!!",
+                                                          1);
+                                                    });
+                                                  } else {
+                                                    setState(() {
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                      showBar(
+                                                          context, res.data, 0);
+                                                    });
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            child: const Text('Send report'))
+                                      ],
+                                    );
+                                  },
+                                );
                               },
-                              decoration: const InputDecoration(
-                                  hintText: "some details about your car"),
-                            ),
-                            actions: [
-                              // SwitchListTile(
-                              //     title: const Text('Send Current Location'),
-                              //     value: ch,
-                              //     onChanged: (bool value) {
-                              //       setState(() {
-                              //         ch = value;
-                              //       });
-                              //     }),
-                              TextButton(
-                                  style: ButtonStyle(
-                                      padding: MaterialStateProperty.all(
-                                          EdgeInsets.only(
-                                              top: height / 45,
-                                              bottom: height / 45,
-                                              left: width / 10,
-                                              right: width / 10)),
-                                      backgroundColor:
-                                          MaterialStateProperty.all(
-                                              Color.fromRGBO(19, 26, 44, 1.0))),
-                                  onPressed: () async {
-                                    if (det.text.isEmpty) {
-                                      setState(() {
-                                        Navigator.of(context).pop();
-                                        showBar(context,
-                                            'please enter some details', 0);
-                                      });
-                                    } else {
-                                      if (_formKey.currentState!.validate()) {
-                                        setState(() {
-                                          showLoadingDialog(context);
-                                        });
-                                        auth.User? user =
-                                            FirebaseAuth.instance.currentUser;
-                                        String? name = user!.displayName;
-                                        // double? la = _currentPosition.latitude;
-                                        //  double? lo = _currentPosition.longitude;
-                                        GeoPoint location = GeoPoint(
-                                            37.419013242401576,
-                                            -122.11134664714336);
-                                        var res = await addItem(
-                                            uid: user.uid,
-                                            name: name!,
-                                            type: 'Battery Repair',
-                                            description: det.text.trim(),
-                                            map_location: location);
-                                        if (res.ch == 1) {
-                                          setState(() {
-                                            det.clear();
-                                            Navigator.of(context).pop();
-                                            Navigator.of(context).pop();
-                                            showBar(
-                                                context, "Progress Added!!", 1);
-                                          });
-                                        } else {
-                                          setState(() {
-                                            Navigator.of(context).pop();
-                                            showBar(context, res.data, 0);
-                                          });
-                                        }
-                                      }
-                                    }
-                                  },
-                                  child: const Text('Send report'))
-                            ],
-                          );
-                        },
-                      );
-                    },
-                    child: Card(
-                      color: Colors.yellow[800],
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: const <Widget>[
-                            Center(
-                              child: CircleAvatar(
-                                maxRadius: 40,
-                                backgroundImage:
-                                    AssetImage('assets/images/bat.jpg'),
+                              child: Card(
+                                color: Colors.yellow[800],
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8)),
+                                child: Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: <Widget>[
+                                      Center(
+                                        child: Container(
+                                          height: height / 6,
+                                          width: width / 6,
+                                          clipBehavior: Clip.antiAlias,
+                                          decoration: const BoxDecoration(
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: CachedNetworkImage(
+                                            fit: BoxFit.contain,
+                                            imageUrl: snapshot.data!.docs[index]
+                                                ['image'],
+                                            progressIndicatorBuilder: (context,
+                                                    url, downloadProgress) =>
+                                                Center(
+                                              child: CircularProgressIndicator(
+                                                  value: downloadProgress
+                                                      .progress),
+                                            ),
+                                            errorWidget:
+                                                (context, url, error) =>
+                                                    (const Icon(Icons.error)),
+                                          ),
+                                        ),
+                                      ),
+                                      Text(snapshot.data!.docs[index]['name'],
+                                          style: const TextStyle(
+                                              color: Colors.white)),
+                                    ],
+                                  ),
+                                ),
                               ),
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            Text('Battery Repair',
-                                style: TextStyle(color: Colors.white)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () async {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('Wheels Repair'),
-                            content: TextFormField(
-                              controller: det,
-                              decoration: const InputDecoration(
-                                  hintText: "some details about your car"),
-                            ),
-                            actions: [
-                              // SwitchListTile(
-                              //     title: const Text('Send Current Location'),
-                              //     value: ch,
-                              //     onChanged: (bool value) {
-                              //       setState(() {
-                              //         ch = value;
-                              //       });
-                              //     }),
-                              TextButton(
-                                  style: ButtonStyle(
-                                      padding: MaterialStateProperty.all(
-                                          EdgeInsets.only(
-                                              top: height / 45,
-                                              bottom: height / 45,
-                                              left: width / 10,
-                                              right: width / 10)),
-                                      backgroundColor:
-                                          MaterialStateProperty.all(
-                                              Color.fromRGBO(19, 26, 44, 1.0))),
-                                  onPressed: () async {
-                                    if (det.text.isEmpty) {
-                                      setState(() {
-                                        Navigator.of(context).pop();
-                                        showBar(context,
-                                            'please enter some detils', 0);
-                                      });
-                                    } else {
-                                      setState(() {
-                                        showLoadingDialog(context);
-                                      });
-                                      auth.User? user =
-                                          FirebaseAuth.instance.currentUser;
-                                      String? name = user!.displayName;
-
-                                      GeoPoint location = GeoPoint(
-                                          37.419013242401576,
-                                          -123.11134664714336);
-                                      var res = await addItem(
-                                          uid: user.uid,
-                                          name: name!,
-                                          type: 'Wheels Repair',
-                                          description: det.text.trim(),
-                                          map_location: location);
-                                      if (res.ch == 1) {
-                                        setState(() {
-                                          det.clear();
-                                          Navigator.of(context).pop();
-                                          Navigator.of(context).pop();
-                                          showBar(
-                                              context, "Progress Added!!", 1);
-                                        });
-                                      } else {
-                                        setState(() {
-                                          Navigator.of(context).pop();
-                                          showBar(context, res.data, 0);
-                                        });
-                                      }
-                                    }
-                                  },
-                                  child: const Text('Send report'))
-                            ],
-                          );
-                        },
-                      );
-                    },
-                    child: Card(
-                      color: Colors.yellow[800],
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: const <Widget>[
-                            Center(
-                              child: CircleAvatar(
-                                maxRadius: 40,
-                                backgroundImage:
-                                    AssetImage('assets/images/wh.png'),
-                              ),
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            Text('Wheels Repair',
-                                style: TextStyle(color: Colors.white)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () async {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('Engine Repair'),
-                            content: TextFormField(
-                              controller: det,
-                              decoration: const InputDecoration(
-                                  hintText: "some details about your car"),
-                            ),
-                            actions: [
-                              // SwitchListTile(
-                              //     title: const Text('Send Current Location'),
-                              //     value: ch,
-                              //     onChanged: (bool value) {
-                              //       setState(() {
-                              //         ch = value;
-                              //       });
-                              //     }),
-                              TextButton(
-                                  style: ButtonStyle(
-                                      padding: MaterialStateProperty.all(
-                                          EdgeInsets.only(
-                                              top: height / 45,
-                                              bottom: height / 45,
-                                              left: width / 10,
-                                              right: width / 10)),
-                                      backgroundColor:
-                                          MaterialStateProperty.all(
-                                              Color.fromRGBO(19, 26, 44, 1.0))),
-                                  onPressed: () async {
-                                    if (det.text.isEmpty) {
-                                      setState(() {
-                                        Navigator.of(context).pop();
-                                        showBar(context,
-                                            'please enter some detils', 0);
-                                      });
-                                    } else {
-                                      setState(() {
-                                        showLoadingDialog(context);
-                                      });
-                                      auth.User? user =
-                                          FirebaseAuth.instance.currentUser;
-                                      String? name = user!.displayName;
-
-                                      GeoPoint location = GeoPoint(
-                                          38.419013242401576,
-                                          -122.11134664714336);
-                                      var res = await addItem(
-                                          uid: user.uid,
-                                          name: name!,
-                                          type: 'Engine Repair',
-                                          description: det.text.trim(),
-                                          map_location: location);
-                                      if (res.ch == 1) {
-                                        setState(() {
-                                          det.clear();
-                                          Navigator.of(context).pop();
-                                          Navigator.of(context).pop();
-                                          showBar(
-                                              context, "Progress Added!!", 1);
-                                        });
-                                      } else {
-                                        setState(() {
-                                          Navigator.of(context).pop();
-                                          showBar(context, res.data, 0);
-                                        });
-                                      }
-                                    }
-                                  },
-                                  child: const Text('Send report'))
-                            ],
-                          );
-                        },
-                      );
-                    },
-                    child: Card(
-                      color: Colors.yellow[800],
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: const <Widget>[
-                            Center(
-                              child: CircleAvatar(
-                                maxRadius: 40,
-                                backgroundImage:
-                                    AssetImage('assets/images/ac.png'),
-                              ),
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            Text('Engine Repair',
-                                style: TextStyle(color: Colors.white)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () async {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('Car Accessories'),
-                            content: TextFormField(
-                              controller: det,
-                              decoration: const InputDecoration(
-                                  hintText: "some details about your car"),
-                            ),
-                            actions: [
-                              // SwitchListTile(
-                              //     title: const Text('Send Current Location'),
-                              //     value: ch,
-                              //     onChanged: (bool value) {
-                              //       setState(() {
-                              //         ch = value;
-                              //       });
-                              //     }),
-                              TextButton(
-                                  style: ButtonStyle(
-                                      padding: MaterialStateProperty.all(
-                                          EdgeInsets.only(
-                                              top: height / 45,
-                                              bottom: height / 45,
-                                              left: width / 10,
-                                              right: width / 10)),
-                                      backgroundColor:
-                                          MaterialStateProperty.all(
-                                              Color.fromRGBO(19, 26, 44, 1.0)),
-                                      shape: MaterialStateProperty.all<
-                                              RoundedRectangleBorder>(
-                                          RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(13),
-                                              side: BorderSide(
-                                                  color: Colors.yellow)))),
-                                  onPressed: () async {
-                                    if (det.text.isEmpty) {
-                                      setState(() {
-                                        Navigator.of(context).pop();
-                                        showBar(context,
-                                            'please enter some detils', 0);
-                                      });
-                                    } else {
-                                      setState(() {
-                                        showLoadingDialog(context);
-                                      });
-                                      auth.User? user =
-                                          FirebaseAuth.instance.currentUser;
-                                      String? name = user!.displayName;
-
-                                      GeoPoint location = GeoPoint(
-                                          39.419013242401576,
-                                          -122.11134664714336);
-                                      var res = await addItem(
-                                          uid: user.uid,
-                                          name: name!,
-                                          type: 'Car Accessories',
-                                          description: det.text.trim(),
-                                          map_location: location);
-                                      if (res.ch == 1) {
-                                        setState(() {
-                                          det.clear();
-                                          Navigator.of(context).pop();
-                                          Navigator.of(context).pop();
-                                          showBar(
-                                              context, "Progress Added!!", 1);
-                                        });
-                                      } else {
-                                        setState(() {
-                                          Navigator.of(context).pop();
-                                          showBar(context, res.data, 0);
-                                        });
-                                      }
-                                    }
-                                  },
-                                  child: const Text('Send report'))
-                            ],
-                          );
-                        },
-                      );
-                    },
-                    child: Card(
-                      color: Colors.yellow[800],
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: const <Widget>[
-                            Center(
-                              child: CircleAvatar(
-                                maxRadius: 40,
-                                backgroundImage:
-                                    AssetImage('assets/images/ac.png'),
-                              ),
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            Text('Car Accessories',
-                                style: TextStyle(color: Colors.white)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () async {
-                      launch('tel://65782');
-                    },
-                    child: Card(
-                      color: Colors.yellow[800],
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: const <Widget>[
-                            Center(
-                              child: CircleAvatar(
-                                maxRadius: 40,
-                                backgroundImage:
-                                    AssetImage('assets/images/hot.jpg'),
-                              ),
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            Text('Hot Line',
-                                style: TextStyle(color: Colors.white)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ]),
-          ),
-        ),
-      ),
-    );
+                            );
+                          },
+                        );
+                      }),
+                ),
+              ),
+            ),
+          );
+        });
   }
 
   void showBar(BuildContext context, String msg, int ch) {

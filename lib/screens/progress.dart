@@ -29,7 +29,7 @@ class _ProgressPageState extends State<ProgressPage> {
               );
             } else {
               if (snapshot.data!.docs.isEmpty) {
-                return Center(
+                return const Center(
                   child: Text('No data Founded'),
                 );
               } else {
