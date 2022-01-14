@@ -241,14 +241,15 @@ class _HomePageState extends State<HomePage> {
                                     children: <Widget>[
                                       Center(
                                         child: Container(
-                                          height: height / 6,
-                                          width: width / 6,
+                                          height: height / 4,
+                                          width: width / 4,
                                           clipBehavior: Clip.antiAlias,
                                           decoration: const BoxDecoration(
                                             shape: BoxShape.circle,
                                           ),
                                           child: CachedNetworkImage(
-                                            fit: BoxFit.contain,
+                                            width: 1000,
+                                            fit: BoxFit.cover,
                                             imageUrl: snapshot.data!.docs[index]
                                                 ['image'],
                                             progressIndicatorBuilder: (context,
