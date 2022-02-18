@@ -102,6 +102,10 @@ Future<RequestResult> addItem({
   required String uid,
   required String name,
   required String type,
+  required String workerid,
+  required String workername,
+  required int price,
+  required int workernumber,
   required String description,
   required GeoPoint map_location,
 }) async {
@@ -110,12 +114,17 @@ Future<RequestResult> addItem({
 
   Map<String, dynamic> data = <String, dynamic>{
     "uid": uid,
+    "workerid": workerid,
     "name": name,
-    "worker": '',
+    "worker": workername,
+    "price": price,
+    "worker_number": workernumber,
     "type": type,
     "map_location": map_location,
     "description": description,
-    "status": 2,
+    "time": DateTime.now().day,
+    "fulltime": DateTime.now(),
+    "status": 0,
   };
   // final credential = await documentReferencer.set(data).whenComplete(() {
   //   return RequestResult("Notes item added to the database", 0);
