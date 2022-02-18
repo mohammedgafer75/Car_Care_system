@@ -123,7 +123,8 @@ Future<RequestResult> addItem({
     "map_location": map_location,
     "description": description,
     "time": DateTime.now().day,
-    "fulltime": DateTime.now(),
+    "month": DateTime.now().month,
+    "year": DateTime.now().year,
     "status": 0,
   };
   // final credential = await documentReferencer.set(data).whenComplete(() {
