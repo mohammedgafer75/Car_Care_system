@@ -56,7 +56,7 @@ class _ProgressPageState extends State<ProgressPage> {
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8)),
                           child: SizedBox(
-                            height: 130,
+                            height: 150,
                             width: 70,
                             child: ListView(children: [
                               Center(
@@ -71,13 +71,25 @@ class _ProgressPageState extends State<ProgressPage> {
                               Padding(
                                   padding:
                                       const EdgeInsets.only(top: 18, left: 18),
-                                  child: Text(
-                                      'Maintenance worker: ${snapshot.data!.docs[index]['worker']}',
-                                      style: const TextStyle(
-                                          fontSize: 14, color: Colors.black))),
-                              Center(
+                                  child: Row(
+                                    children: [
+                                      const Text(
+                                      ' Maintenance worker:  ',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: Colors.black),
+                                    ),
+                                      Text(
+                                          '${snapshot.data!.docs[index]['worker']}',
+                                          style: const TextStyle(
+                                              fontSize: 14, color: Colors.black)),
+                                    ],
+                                  )),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.only(top: 18, left: 18),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     const Text(
                                       ' Status: ',
@@ -110,13 +122,6 @@ class _ProgressPageState extends State<ProgressPage> {
                                               ),
                                   ],
                                 ),
-                              ),
-                              const Text(
-                                ' Status: ',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: Colors.black),
                               ),
                               snapshot.data!.docs[index]['status'] == 1
                                   ? const SizedBox()
@@ -152,13 +157,6 @@ class _ProgressPageState extends State<ProgressPage> {
                                                 style: TextStyle(
                                                     color: Colors.white),
                                               )),
-                                          const Text(
-                                            ' Status: ',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                                color: Colors.black),
-                                          ),
                                           snapshot.data!.docs[index]
                                                       ['status'] ==
                                                   1

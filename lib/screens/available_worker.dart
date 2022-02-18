@@ -54,7 +54,7 @@ class _AvailableWorkerState extends State<AvailableWorker> {
         .collection('Worker')
         .where('status', isEqualTo: true)
         .get();
-
+    List list = [];
     res.docs.forEach((element) async {
       GeoPoint position = element['location'];
       List<Placemark> placemarks = await placemarkFromCoordinates(
@@ -64,7 +64,7 @@ class _AvailableWorkerState extends State<AvailableWorker> {
       var Address =
           '${place.street}, ${place.subLocality}, ${place.locality}, ${place.country}';
 
-      data.add({
+      list.add({
         'name': element['name'],
         'address': Address,
         'phone': element['phone'],
@@ -72,9 +72,9 @@ class _AvailableWorkerState extends State<AvailableWorker> {
       });
     });
     setState(() {
-      ch = 1;
+      data = list;
     });
-    return data;
+    return ch = 1;
   }
 
   @override
@@ -93,6 +93,7 @@ class _AvailableWorkerState extends State<AvailableWorker> {
           },
         ),
         body: FutureBuilder(
+          future: getData(),
           builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
             if (ch == 0) {
               return const Center(

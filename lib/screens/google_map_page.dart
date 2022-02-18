@@ -104,7 +104,7 @@ class _MapPageState extends State<MapPage> {
       "id": '1',
       "name": 'mylocation'
     });
-
+    ch = 1;
     return _currentPosition;
   }
 
@@ -115,29 +115,31 @@ class _MapPageState extends State<MapPage> {
           title: const Text('Services Maps'),
           backgroundColor: Colors.yellow[800],
         ),
-        body: FutureBuilder(builder: (context, snapshot) {
-          if (ch == 0) {
-            createMarkers(context);
-            return _contacts.isEmpty
-                ? const Center(
-                    child: Text('No Locations Founded'),
-                  )
-                : Stack(
-                    children: [
-                      GoogleMap(
-                          // polylines: _polyline,
-                          initialCameraPosition: _initialcameraposition,
-                          markers: _markers,
-                          myLocationButtonEnabled: false,
-                          onMapCreated: _onMapCreated),
-                    ],
-                  );
-          } else {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-        }));
+        body: FutureBuilder(
+            future: getLoc(),
+            builder: (context, snapshot) {
+              if (ch == 1) {
+                createMarkers(context);
+                return _contacts.isEmpty
+                    ? const Center(
+                        child: Text('No Locations Founded'),
+                      )
+                    : Stack(
+                        children: [
+                          GoogleMap(
+                              // polylines: _polyline,
+                              initialCameraPosition: _initialcameraposition,
+                              markers: _markers,
+                              myLocationButtonEnabled: false,
+                              onMapCreated: _onMapCreated),
+                        ],
+                      );
+              } else {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+            }));
   }
 
   createMarkers(BuildContext context) {

@@ -3,6 +3,7 @@ import 'package:car_care/screens/add_wallet.dart';
 import 'package:car_care/screens/available_worker.dart';
 import 'package:car_care/screens/google_map_page.dart';
 import 'package:car_care/screens/progress.dart';
+import 'package:car_care/screens/wallet.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -126,6 +127,14 @@ class _HomePageState extends State<HomePage> {
                 title: const Text('Services'),
                 backgroundColor: Colors.yellow[800],
                 actions: [
+                  IconButton(
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const Wallet()));
+                      },
+                      icon: Icon(Icons.wallet_travel)),
                   IconBadge(
                     icon: const Icon(Icons.notifications_none),
                     itemCount: snapshots.data!.docs.length,
