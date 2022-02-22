@@ -134,7 +134,7 @@ class _HomePageState extends State<HomePage> {
                             MaterialPageRoute(
                                 builder: (context) => const Wallet()));
                       },
-                      icon: Icon(Icons.wallet_travel)),
+                      icon: const Icon(Icons.wallet_travel)),
                   IconBadge(
                     icon: const Icon(Icons.notifications_none),
                     itemCount: snapshots.data!.docs.length,
@@ -148,6 +148,15 @@ class _HomePageState extends State<HomePage> {
                     },
                   )
                 ],
+              ),
+              floatingActionButton: FloatingActionButton(
+                backgroundColor: Colors.yellow[800],
+                enableFeedback: true,
+                tooltip: 'HotLine',
+                child: Icon(Icons.call),
+                onPressed: () {
+                  launch('tel://5513');
+                },
               ),
               body: StreamBuilder(
                   stream: FirebaseFirestore.instance

@@ -68,7 +68,8 @@ class _AvailableWorkerState extends State<AvailableWorker> {
         'name': element['name'],
         'address': Address,
         'phone': element['phone'],
-        'uid': element['uid']
+        'uid': element['uid'],
+        'id': element.id
       });
     });
     setState(() {
@@ -213,6 +214,10 @@ class _AvailableWorkerState extends State<AvailableWorker> {
                       workername: datas['name'],
                       workernumber: int.tryParse(datas['phone'])!,
                     );
+                    await FirebaseFirestore.instance
+                        .collection('Worker')
+                        .doc(datas['id'])
+                        .update({'status': false});
                     if (res.ch == 1) {
                       setState(() {
                         det.clear();
